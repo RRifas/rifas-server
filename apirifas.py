@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 import re
 import psycopg
@@ -139,109 +138,18 @@ def buy_tickets(buy_data: buyschema):
 
     data=buy_data.dict()
     rifa=conn.get_rifa_by_id({'id':data['rifa_id']})
-    
+
     if rifa== None:
         raise HTTPException(status_code=404, detail="Rifa not found")
-    
+
     rifa=conn.get_available_tickets(data)
     if not isinstance(rifa, dict):
         raise HTTPException(status_code=400, detail="Ticket not available")
- 
+
     # Create a transaction record in the database
     transaction_id = conn.create_transaction({"rifa_id":data['rifa_id'],"total_price":rifa['total_price'],"tickets":data['tickets']})
     if not isinstance(transaction_id, int):
         raise HTTPException(status_code=400, detail="Error creating rifa")
     #transaction_id=int
     return "gracias por tu compra che"
-
-
-
-
-   
-=======
-
-from fastapi import FastAPI, Response
-from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
-from model.users_connection import userConnection
-import json
-from schema.user_schema import buyschema, rifaschema, preorderschema
-
-app = FastAPI( )
-conn=userConnection
-
-@app.get("/", status_code=HTTP_200_OK)
-def root():
-    
-
-
-    item=[]
-    data= conn().read_all()
-    
-
-    dict1={}
-    key_list = ['descripcion', 'goal', 'id','tickets_vendidos']
-    
-    
-
-    for i in data:
-        if len(i)==3:
-            dict_from_list = dict(zip(key_list, i))
-            dict_from_list ['status']='0%'
-            item.append(dict_from_list)
-            final = json.dumps(item, indent=1)  
-
-        else:
-
-            dict_from_list = dict(zip(key_list, i))
-            dict_from_list ['status']=str(dict_from_list['tickets_vendidos']/dict_from_list['goal']*100)+'%'
-            item.append(dict_from_list)
-            final = json.dumps(item, indent=1)  
-    return  final
-
-@app.post("/api/insert",status_code=HTTP_201_CREATED)
-def insert(buy_data:preorderschema):
-    data=buy_data.dict()
-    conn().preorder_a_ticket(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-
-@app.post("/api/buy",status_code=HTTP_201_CREATED)
-def insert(buy_data:buyschema):
-    data=buy_data.dict()
-    conn().buy_a_ticket(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-    
-@app.delete("/api/cancel/{id}",status_code=HTTP_204_NO_CONTENT)
-def detele(id:str):
-    conn().cancel_ticket(id)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
-@app.post("/api/create",status_code=HTTP_201_CREATED)
-def insert(rifa_data:rifaschema):
-    data=rifa_data.dict()
-    conn().create_a_rifa(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-
-@app.put("/api/update/{id}",status_code=HTTP_204_NO_CONTENT)
-def update(rifa_data:rifaschema,id:str):
-    data=rifa_data.dict()
-    data['rifa_id']=id
-
-    conn().modify_rifa(data)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
-
-
-
-@app.delete("/api/delete/{id}",status_code=HTTP_204_NO_CONTENT)
-def detele(id:str):
-    conn().delete_rifa(id)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
->>>>>>> origin/main
 

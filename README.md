@@ -4,7 +4,37 @@
 
 ### Installation
 
+Install dependencies from `requirements.txt`
+
+- `make install`
+
+### DB Setup
+
+Install [PostgreSQL](https://www.postgresql.org/) and configure:
+
+- CREATE DATABASE rifas;
+- CREATE ROLE postgres;
+- ALTER USER postgres WITH LOGIN;
+
+Create the database tables using [peewee's suggested method](https://docs.peewee-orm.com/en/latest/peewee/example.html#creating-tables):
+
+```
+$ python
+>>> from config import *
+>>> database_schema.create_tables()
+```
+
 ### Local Development
+
+Local development is done using [hypercorn](https://hypercorn.readthedocs.io/en/latest/).
+
+- `make start`
+
+### Testing
+
+Testing is done using [pytest](https://docs.pytest.org/en/latest/).
+
+- `make test`
 
 ### Model Schema
 

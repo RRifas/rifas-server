@@ -10,7 +10,7 @@ client = TestClient(app)
 user_conn = userConnection()
 
 def test_read_all():
-    
+
 
     # Test successful read from database all rifas
     response = client.get('/')
@@ -31,7 +31,7 @@ def test_read_all():
 
 def test_create_a_rifa():
     test_create_a_rifa_missing_fields()
-   
+
 
     # Test successful creation of a rifa
     rifa_data = {
@@ -51,7 +51,7 @@ def test_create_a_rifa():
 
 
 def test_delete_rifa():
-    
+
 
     # Test successful deletion of a rifa
     rifa_data = {
@@ -62,7 +62,7 @@ def test_delete_rifa():
         "description": "This is a test rifa",
     }
     created_rifa_id = user_conn.create_a_rifa(rifa_data)
-   
+
     user_conn.delete_rifa({'id': created_rifa_id[0]})
 
     # Check that the rifa was successfully deleted
@@ -71,11 +71,11 @@ def test_delete_rifa():
     # Test deletion of a non-existent rifa
     non_existent_rifa_id = 12345
     response = client.delete(f'/api/delete/{non_existent_rifa_id}')
-    assert response.status_code == 404 
+    assert response.status_code == 404
 
 
 def test_modify_rifa():
-    
+
 
     # Test successful modification of a rifa
     rifa_data = {
@@ -88,9 +88,9 @@ def test_modify_rifa():
     result = user_conn.create_a_rifa(rifa_data)
     assert result is not None
     assert result[1]==rifa_data['rifa_name']
-    
+
     rifa_id = result[0]
-    
+
 
     new_rifa_data = {
         "rifa_id": rifa_id,
@@ -143,7 +143,7 @@ def test_modify_rifa():
 
 
 def test_get_rifa_by_id():
-    
+
 
     # Test successful retrieval of a rifa
     rifa_data = {
@@ -209,13 +209,13 @@ def test_get_ticket_price():
 
 def test_get_available_tickets():
     buy_data = {'rifa_id': 1, 'tickets': 1000}
-    expected_output = None
+    expected_output = {'tickets': 1000, 'total_price': 20000}
 
     assert user_conn.get_available_tickets(buy_data) == expected_output
 
 def test_create_transaction():
     buy_data = {'rifa_id': 1, 'tickets': 2, 'total_price': 20}
-    
+
 
     assert isinstance(user_conn.create_transaction(buy_data), int)
 

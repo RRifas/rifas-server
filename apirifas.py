@@ -3,6 +3,7 @@ import re
 import psycopg
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from model.users_connection import userConnection
 from schema.user_schema import rifaschema,buyschema
@@ -13,6 +14,17 @@ app = FastAPI()
 # Creating a userConnection instance to connect to the database
 conn = userConnection()
 
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/", status_code=HTTP_200_OK)
 def get_rifas():

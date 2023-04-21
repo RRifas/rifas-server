@@ -40,25 +40,23 @@ def get_rifas():
     for rifa in rifas:
         # Create a dictionary with the rifas data
         rifa_dict = {
-            'name': rifa[0],
-            'description': rifa[1],
-            'price': rifa[2],
-            'goal': rifa[3],
-            'tickets_sold': rifa[4] or 0
+            'id': rifa[0],
+            'name': rifa[1],
+            'description': rifa[2],
+            'price': rifa[3],
+            'goal': rifa[4],
+            'tickets_sold': rifa[5] or 0
         }
 
         # Calculate the rifas status (percentage of tickets sold)
-        rifa_dict['status'] = str(
-            rifa_dict['tickets_sold'] / rifa_dict['goal'] * 100) + '%'
+        if rifa_dict['id']:
+            rifa_dict['status'] = str(
+                rifa_dict['tickets_sold'] / rifa_dict['goal'] * 100) + '%'
+            # Add the rifa dictionary to the list of rifas items
+            rifas_items.append(rifa_dict)
 
-        # Add the rifa dictionary to the list of rifas items
-        rifas_items.append(rifa_dict)
-
-    # Convert the list of rifas items to JSON format with indentation for readability
-    final = json.dumps(rifas_items)
-
-    # Return the JSON string
-    return final
+    # Return the list
+    return rifas_items
 
 
 @app.post("/api/create", status_code=HTTP_201_CREATED)
@@ -79,8 +77,8 @@ def create_rifas(rifa_data: rifaschema):
 
     # Create response object with the new rifa's ID and name
     response_object = {
-        "rifa_id": rifa_id[0],
-        "rifa_name": rifa_id[1],
+        "id": rifa_id[0],
+        "name": rifa_id[1],
     }
 
     return response_object
@@ -103,7 +101,7 @@ def update(rifa_data: rifaschema, id: int):
     # The received rifa information is converted into a dictionary
     rifa_data_dict = rifa_data.dict()
     # The id received in the URL is added to the rifa dictionary
-    rifa_data_dict.update({'rifa_id': id})
+    rifa_data_dict.update({'id': id})
     # The rifa information is updated in the database
     conn.modify_rifa(rifa_data_dict)
 
@@ -149,7 +147,7 @@ def preorder_tickets(buy_data: buyschema):
 def buy_tickets(buy_data: buyschema):
 
     data=buy_data.dict()
-    rifa=conn.get_rifa_by_id({'id':data['rifa_id']})
+    rifa=conn.get_rifa_by_id({'id':data['id']})
 
     if rifa== None:
         raise HTTPException(status_code=404, detail="Rifa not found")
@@ -159,7 +157,7 @@ def buy_tickets(buy_data: buyschema):
         raise HTTPException(status_code=400, detail="Ticket not available")
 
     # Create a transaction record in the database
-    transaction_id = conn.create_transaction({"rifa_id":data['rifa_id'],"total_price":rifa['total_price'],"tickets":data['tickets']})
+    transaction_id = conn.create_transaction({"id":data['id'],"total_price":rifa['total_price'],"tickets":data['tickets']})
     if not isinstance(transaction_id, int):
         raise HTTPException(status_code=400, detail="Error creating rifa")
     #transaction_id=int

@@ -3,7 +3,7 @@
 # ===========
 
 start: ## Run app
-	hypercorn apirifas.py
+	hypercorn --reload apirifas.py
 
 # ==================
 # = Pip management =

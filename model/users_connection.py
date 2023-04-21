@@ -46,18 +46,18 @@ class userConnection():
             try:
                 with conn.cursor() as cur:
                     query = """ SELECT
-                    rifa.rifa_name, rifa.description, rifa.price, rifa.goal, SUM(transaction.tickets) as total_tickets
+                    rifa.id, rifa.name, rifa.description, rifa.price, rifa.goal, SUM(transaction.tickets) as total_tickets
                     FROM transaction_detail
-                    FULL JOIN rifa on rifa.rifa_id = transaction_detail.rifa_id
+                    FULL JOIN rifa on rifa.id = transaction_detail.rifa_id
                     FULL JOIN transaction on transaction_detail.transaction_id = transaction.transaction_id
-                    GROUP BY rifa.rifa_id
+                    GROUP BY rifa.id
         """
 
                     cur.execute(query)
                     self.data = cur.fetchall()
                     return self.data
             except psycopg.Error as e:
-                logger.error(f"Error al crear la rifa: {e}")
+                logger.error(f"Error al seleccionar las rifas: {e}")
                 raise e
 
     # Create a new Rifa in database
@@ -66,9 +66,9 @@ class userConnection():
             try:
                 with conn.cursor() as cur:
                     query = """
-    INSERT INTO rifa(rifa_name, goal, price, imagen, description)
-    VALUES(%(rifa_name)s::text, %(goal)s::numeric, %(price)s::numeric, %(imagen)s::text, %(description)s::text)
-    RETURNING rifa_id, rifa_name"""
+    INSERT INTO rifa(name, goal, price, imagen, description)
+    VALUES(%(name)s::text, %(goal)s::numeric, %(price)s::numeric, %(imagen)s::text, %(description)s::text)
+    RETURNING id, name"""
 
                     cur.execute(query, data)
                     self.id = cur.fetchone()
@@ -83,7 +83,7 @@ class userConnection():
         with self.db_conn as conn:
             try:
                 with conn.cursor() as cur:
-                    query = """DELETE FROM rifa WHERE rifa_id=%(id)s"""
+                    query = """DELETE FROM rifa WHERE id=%(id)s"""
                     cur.execute(query, {'id': id['id']})
                     conn.commit()
             except psycopg.Error as e:
@@ -96,8 +96,8 @@ class userConnection():
             try:
                 with conn.cursor() as cur:
                     query = """ UPDATE "rifa"
-                    SET rifa_name = %(rifa_name)s, goal=%(goal)s, price=%(price)s, description=%(description)s
-                    WHERE rifa_id = %(rifa_id)s RETURNING rifa_id, rifa_name, description"""
+                    SET name = %(name)s, goal=%(goal)s, price=%(price)s, description=%(description)s
+                    WHERE id = %(id)s RETURNING id, name, description"""
                     cur.execute(query, id)
                     self.data = cur.fetchone()
 
@@ -112,27 +112,26 @@ class userConnection():
         with self.db_conn as conn:
             try:
                 with conn.cursor() as cur:
-
-                    query = """SELECT rifa_id FROM rifa WHERE rifa_id = %(id)s"""
+                    query = """SELECT id FROM rifa WHERE id = %(id)s"""
                     cur.execute(query, id)
-
                     result = cur.fetchone()
                     if not result:
+                        print("HERE")
                         return None
                     return {
-                        "rifa_id": result[0],
+                        "id": result[0],
                     }
             except psycopg.Error as e:
                 logger.error("Error fetching rifa by id:", e)
                 raise e
 
 
-    def get_ticket_price(self, rifa_id, num_tickets):
+    def get_ticket_price(self, id, num_tickets):
         with self.db_conn as conn:
             try:
                 with conn.cursor() as cur:
-                    query = """SELECT price FROM rifa WHERE rifa_id = %(id)s"""
-                    cur.execute(query, {'id': rifa_id})
+                    query = """SELECT price FROM rifa WHERE id = %(id)s"""
+                    cur.execute(query, {'id': id})
                     result = cur.fetchone()
 
                     if not result:
@@ -153,16 +152,16 @@ class userConnection():
                 with conn.cursor() as cur:
                     query = """SELECT price, SUM(transaction.tickets) as total_tickets
                             FROM transaction_detail
-                            FULL JOIN rifa on rifa.rifa_id = transaction_detail.rifa_id
+                            FULL JOIN rifa on rifa.id = transaction_detail.rifa_id
                             FULL JOIN transaction on transaction_detail.transaction_id = transaction.transaction_id
-                            WHERE rifa.rifa_id=%(id)s
-                            GROUP BY rifa.rifa_id"""
+                            WHERE rifa.id=%(id)s
+                            GROUP BY rifa.id"""
 
-                    cur.execute(query, {'id': buy_data['rifa_id']})
+                    cur.execute(query, {'id': buy_data['id']})
                     result = cur.fetchone()
 
                     if result[1] is None:
-                        return self.get_ticket_price(buy_data['rifa_id'], buy_data['tickets'])
+                        return self.get_ticket_price(buy_data['id'], buy_data['tickets'])
 
                     if result[0] is not None and result[1] <= 999:
                         ticket_price = result[0]
@@ -177,7 +176,7 @@ class userConnection():
 
     def read(self):
         with self.conn.cursor() as cur:
-            data = cur.execute(' select rifa_name,rifa_id from rifa where;')
+            data = cur.execute(' select name,id from rifa where;')
 
             data = data.fetchall()
 

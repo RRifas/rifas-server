@@ -20,8 +20,8 @@ Create the database tables using [peewee's suggested method](https://docs.peewee
 
 ```
 $ python
->>> from config import *
->>> database_schema.create_tables()
+>>> from config.init import create_tables
+>>> create_tables()
 ```
 
 ### Local Development

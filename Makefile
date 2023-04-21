@@ -10,7 +10,7 @@ start: ## Run app
 # ==================
 
 pip-install: ## Install pip requirements
-	pip install -r requirements.txt
+	pip install -r ./requirements.txt
 
 # =========
 # = Tests =

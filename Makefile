@@ -3,7 +3,10 @@
 # ===========
 
 start: ## Run app
-	hypercorn --reload apirifas.py
+	uvicorn apirifas:app --reload --port 8000
+
+start-prod: ## Run app
+	uvicorn apirifas:app --port ${PORT}
 
 # ==================
 # = Pip management =

@@ -26,7 +26,7 @@ $ python
 
 ### Local Development
 
-Local development is done using [hypercorn](https://hypercorn.readthedocs.io/en/latest/).
+Local development is done using [uvicorn](https://www.uvicorn.org/).
 
 - `make start`
 

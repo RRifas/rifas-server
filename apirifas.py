@@ -1,5 +1,6 @@
 import json
 import re
+import os
 import psycopg
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -15,7 +16,7 @@ app = FastAPI()
 conn = userConnection()
 
 origins = [
-    "http://localhost:3000",
+    os.environ.get('CLIENT_URL')
 ]
 
 app.add_middleware(

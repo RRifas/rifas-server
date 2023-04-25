@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from model.users_connection import userConnection
 from schema.user_schema import rifaschema,buyschema
+from config.init import create_tables
 
 # Creating a FastAPI instance
 app = FastAPI()
@@ -164,3 +165,8 @@ def buy_tickets(buy_data: buyschema):
     #transaction_id=int
     return "gracias por tu compra che"
 
+# TODO: remove endpoint after db is stable
+@app.get("/api/create-tables", status_code=HTTP_200_OK)
+def create_tables_endpoint():
+    create_tables()
+    return "tables updated"

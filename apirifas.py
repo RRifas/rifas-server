@@ -1,12 +1,14 @@
-<<<<<<< HEAD
 import json
 import re
+import os
 import psycopg
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from model.users_connection import userConnection
 from schema.user_schema import rifaschema,buyschema
+from config.init import create_tables
 
 # Creating a FastAPI instance
 app = FastAPI()
@@ -14,6 +16,17 @@ app = FastAPI()
 # Creating a userConnection instance to connect to the database
 conn = userConnection()
 
+origins = [
+    os.environ.get('CLIENT_URL')
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/", status_code=HTTP_200_OK)
 def get_rifas():
@@ -29,25 +42,23 @@ def get_rifas():
     for rifa in rifas:
         # Create a dictionary with the rifas data
         rifa_dict = {
-            'name': rifa[0],
-            'description': rifa[1],
-            'price': rifa[2],
-            'goal': rifa[3],
-            'tickets_sold': rifa[4] or 0
+            'id': rifa[0],
+            'name': rifa[1],
+            'description': rifa[2],
+            'price': rifa[3],
+            'goal': rifa[4],
+            'tickets_sold': rifa[5] or 0
         }
 
         # Calculate the rifas status (percentage of tickets sold)
-        rifa_dict['status'] = str(
-            rifa_dict['tickets_sold'] / rifa_dict['goal'] * 100) + '%'
+        if rifa_dict['id']:
+            rifa_dict['status'] = str(
+                rifa_dict['tickets_sold'] / rifa_dict['goal'] * 100) + '%'
+            # Add the rifa dictionary to the list of rifas items
+            rifas_items.append(rifa_dict)
 
-        # Add the rifa dictionary to the list of rifas items
-        rifas_items.append(rifa_dict)
-
-    # Convert the list of rifas items to JSON format with indentation for readability
-    final = json.dumps(rifas_items)
-
-    # Return the JSON string
-    return final
+    # Return the list
+    return rifas_items
 
 
 @app.post("/api/create", status_code=HTTP_201_CREATED)
@@ -68,8 +79,8 @@ def create_rifas(rifa_data: rifaschema):
 
     # Create response object with the new rifa's ID and name
     response_object = {
-        "rifa_id": rifa_id[0],
-        "rifa_name": rifa_id[1],
+        "id": rifa_id[0],
+        "name": rifa_id[1],
     }
 
     return response_object
@@ -92,7 +103,7 @@ def update(rifa_data: rifaschema, id: int):
     # The received rifa information is converted into a dictionary
     rifa_data_dict = rifa_data.dict()
     # The id received in the URL is added to the rifa dictionary
-    rifa_data_dict.update({'rifa_id': id})
+    rifa_data_dict.update({'id': id})
     # The rifa information is updated in the database
     conn.modify_rifa(rifa_data_dict)
 
@@ -138,110 +149,24 @@ def preorder_tickets(buy_data: buyschema):
 def buy_tickets(buy_data: buyschema):
 
     data=buy_data.dict()
-    rifa=conn.get_rifa_by_id({'id':data['rifa_id']})
-    
+    rifa=conn.get_rifa_by_id({'id':data['id']})
+
     if rifa== None:
         raise HTTPException(status_code=404, detail="Rifa not found")
-    
+
     rifa=conn.get_available_tickets(data)
     if not isinstance(rifa, dict):
         raise HTTPException(status_code=400, detail="Ticket not available")
- 
+
     # Create a transaction record in the database
-    transaction_id = conn.create_transaction({"rifa_id":data['rifa_id'],"total_price":rifa['total_price'],"tickets":data['tickets']})
+    transaction_id = conn.create_transaction({"id":data['id'],"total_price":rifa['total_price'],"tickets":data['tickets']})
     if not isinstance(transaction_id, int):
         raise HTTPException(status_code=400, detail="Error creating rifa")
     #transaction_id=int
     return "gracias por tu compra che"
 
-
-
-
-   
-=======
-
-from fastapi import FastAPI, Response
-from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
-from model.users_connection import userConnection
-import json
-from schema.user_schema import buyschema, rifaschema, preorderschema
-
-app = FastAPI( )
-conn=userConnection
-
-@app.get("/", status_code=HTTP_200_OK)
-def root():
-    
-
-
-    item=[]
-    data= conn().read_all()
-    
-
-    dict1={}
-    key_list = ['descripcion', 'goal', 'id','tickets_vendidos']
-    
-    
-
-    for i in data:
-        if len(i)==3:
-            dict_from_list = dict(zip(key_list, i))
-            dict_from_list ['status']='0%'
-            item.append(dict_from_list)
-            final = json.dumps(item, indent=1)  
-
-        else:
-
-            dict_from_list = dict(zip(key_list, i))
-            dict_from_list ['status']=str(dict_from_list['tickets_vendidos']/dict_from_list['goal']*100)+'%'
-            item.append(dict_from_list)
-            final = json.dumps(item, indent=1)  
-    return  final
-
-@app.post("/api/insert",status_code=HTTP_201_CREATED)
-def insert(buy_data:preorderschema):
-    data=buy_data.dict()
-    conn().preorder_a_ticket(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-
-@app.post("/api/buy",status_code=HTTP_201_CREATED)
-def insert(buy_data:buyschema):
-    data=buy_data.dict()
-    conn().buy_a_ticket(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-    
-@app.delete("/api/cancel/{id}",status_code=HTTP_204_NO_CONTENT)
-def detele(id:str):
-    conn().cancel_ticket(id)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
-@app.post("/api/create",status_code=HTTP_201_CREATED)
-def insert(rifa_data:rifaschema):
-    data=rifa_data.dict()
-    conn().create_a_rifa(data)
-
-    return Response (status_code=HTTP_201_CREATED)
-
-@app.put("/api/update/{id}",status_code=HTTP_204_NO_CONTENT)
-def update(rifa_data:rifaschema,id:str):
-    data=rifa_data.dict()
-    data['rifa_id']=id
-
-    conn().modify_rifa(data)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
-
-
-
-@app.delete("/api/delete/{id}",status_code=HTTP_204_NO_CONTENT)
-def detele(id:str):
-    conn().delete_rifa(id)
-
-    return Response (status_code=HTTP_204_NO_CONTENT)
-
->>>>>>> origin/main
-
+# TODO: remove endpoint after db is stable
+@app.get("/api/create-tables", status_code=HTTP_200_OK)
+def create_tables_endpoint():
+    create_tables()
+    return "tables updated"

@@ -2,7 +2,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from model.users_connection import userConnection
-from apirifas import app
+from main import app
 
 
 client = TestClient(app)

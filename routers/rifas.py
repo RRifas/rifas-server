@@ -1,34 +1,16 @@
-import json
-import re
-import os
+from fastapi import APIRouter 
 import psycopg
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from model.users_connection import userConnection
 from schema.user_schema import rifaschema,buyschema
 from config.init import create_tables
 
-# Creating a FastAPI instance
-app = FastAPI()
+router= APIRouter()
 
-# Creating a userConnection instance to connect to the database
 conn = userConnection()
 
-origins = [
-    os.environ.get('CLIENT_URL')
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/", status_code=HTTP_200_OK)
+@router.get("/", status_code=HTTP_200_OK)
 def get_rifas():
     # Retrieve all rifas from the database and return their data in JSON format
 
@@ -61,7 +43,7 @@ def get_rifas():
     return rifas_items
 
 
-@app.post("/api/create", status_code=HTTP_201_CREATED)
+@router.post("/api/create", status_code=HTTP_201_CREATED)
 def create_rifas(rifa_data: rifaschema):
     # Check if request data is valid
     if not rifa_data:
@@ -86,7 +68,7 @@ def create_rifas(rifa_data: rifaschema):
     return response_object
 
 
-@app.put("/api/update/{id}", status_code=HTTP_204_NO_CONTENT)
+@router.put("/api/update/{id}", status_code=HTTP_204_NO_CONTENT)
 def update(rifa_data: rifaschema, id: int):
     # A dictionary is created with the id received in the URL
     id2 = {'id': id}
@@ -108,7 +90,7 @@ def update(rifa_data: rifaschema, id: int):
     conn.modify_rifa(rifa_data_dict)
 
 
-@app.delete("/api/delete/{id}", status_code=HTTP_204_NO_CONTENT)
+@router.delete("/api/delete/{id}", status_code=HTTP_204_NO_CONTENT)
 def delete(id: int):
     # Create a dictionary with the id received in the URL
     id = {'id': id}
@@ -122,16 +104,10 @@ def delete(id: int):
     # Delete the rifa from the database
     conn.delete_rifa(id)
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={'message': exc.detail}
-    )
 
 
 
-@app.post("/api/preorder", status_code=HTTP_201_CREATED)
+@router.post("/api/preorder", status_code=HTTP_201_CREATED)
 def preorder_tickets(buy_data: buyschema):
     rifa_id = conn.get_rifa_by_id({'id': buy_data.rifa_id})
     if not rifa_id:
@@ -145,7 +121,7 @@ def preorder_tickets(buy_data: buyschema):
 
 
 # Define the endpoint to buy a ticket
-@app.post("/api/buy", status_code=HTTP_201_CREATED)
+@router.post("/api/buy", status_code=HTTP_201_CREATED)
 def buy_tickets(buy_data: buyschema):
 
     data=buy_data.dict()
@@ -166,7 +142,7 @@ def buy_tickets(buy_data: buyschema):
     return "gracias por tu compra che"
 
 # TODO: remove endpoint after db is stable
-@app.get("/api/create-tables", status_code=HTTP_200_OK)
+@router.get("/api/create-tables", status_code=HTTP_200_OK)
 def create_tables_endpoint():
     create_tables()
     return "tables updated"

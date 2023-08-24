@@ -20,3 +20,12 @@ class rifaschema(BaseModel):
     description:constr(max_length=300, strict=True)
     imagen:constr(max_length=300)
 
+class User(BaseModel):
+    username: str
+
+class UserInDB(User):
+    hashed_password: str
+
+class UserInLogin(User):
+    password: str
+

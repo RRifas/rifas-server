@@ -36,3 +36,19 @@ def register(user_data: User_data):
 
     return response_object
 
+@router.post("/login/", status_code=HTTP_200_OK)
+def login_route(email: str, password: str):
+    # Llamamos a la función para autenticar al usuario
+    user = conn.login_auth(email, password)
+    
+    if not user:
+        # Si las credenciales son incorrectas, devolvemos un error 401 Unauthorized
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+    
+    # Si el usuario es autenticado correctamente, podemos responder con los datos relevantes
+    response_object = {
+        "email": user,
+        # Otros datos que quieras devolver en la respuesta
+    }
+    
+    return response_object

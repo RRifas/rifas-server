@@ -4,6 +4,7 @@ import datetime
 import logging
 from config.database_schema import database_dsn
 
+
 #Create logger instance
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,29 @@ class userConnection():
             except psycopg.Error as e:
                 logger.error(f"Error creating users: {e}")
                 raise e  
-      
+    
+    def login_auth(self,email,password):
+        with self.db_conn as conn:
+
+            try:
+                with conn.cursor() as cur:
+                    query = """
+                    SELECT email, password FROM users WHERE email = %(email)s
+                    """
+                    cur.execute(query, {"email": email})
+                    user = cur.fetchone()
+
+                    if user and bcrypt.verify(password, user[1]):
+                        
+                        # Devolver los datos del usuario autenticado si la contraseña es correcta
+                        return user[0]
+                        
+                    else:
+                        return None  # Credenciales incorrectas
+
+            except psycopg.Error as e:
+                logger.error(f"Error retrieving user for login: {e}")
+                raise e
+
     def __def__(self):
         self.conn.close()

@@ -21,7 +21,7 @@ class users(Basemodel):
     email = CharField()
     first_name = CharField(null=False, default='')
     last_name = CharField(null=False, default='')
-    phone = CharField(unique=True, null=False, default='') 
+    phone = IntegerField(unique=True, null=False, default='') 
     create_at = DateTimeField(default=datetime.datetime.now)
     address = CharField(null=False, default='')
     gender = CharField(null=False, default='')

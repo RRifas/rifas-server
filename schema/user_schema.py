@@ -24,7 +24,7 @@ class User_data (BaseModel):
     email : EmailStr
     first_name : constr(max_length=30, strict=True)
     last_name : constr(max_length=30, strict=True)
-    phone : str
+    phone : int
     address : constr(max_length=30, strict=True)
     gender : constr(max_length=30, strict=True)
     password : str

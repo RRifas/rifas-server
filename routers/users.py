@@ -1,36 +1,38 @@
 from model.users_connection import userConnection
-from fastapi import FastAPI, Depends, HTTPException,status
-from sqlalchemy.orm import Session, sessionmaker
-from schema.user_schema import User
+from schema.user_schema import User_data
+from fastapi import APIRouter , HTTPException
+from model.user_sesion import userConnection
 from fastapi import FastAPI, HTTPException
-from fastapi import APIRouter 
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+import psycopg
+
 
 conn = userConnection()
 
 router= APIRouter()
 
-SessionLocal=sessionmaker(bind=conn,expire_on_commit=False)
-#Base.metadata.create_all(engine)
-def get_session():
-    session = SessionLocal()
+
+@router.post("/register/", status_code=HTTP_201_CREATED)
+def register(user_data: User_data):
+
+    if not user_data:
+        raise HTTPException(status_code=400, detail="Invalid request data")
+
+    # Convert request data to dictionary
+    data = user_data.dict()
+
     try:
-        yield session
-    finally:
-        session.close()
+        # Try to create a new rifa using the data
+        rifa_id = conn.register(data)
+    except psycopg.errors.UniqueViolation:
+        # If a rifa with the same name already exists, raise a 409 Conflict error
+        raise HTTPException(status_code=409, detail="User already exists")
 
+    # Create response object with the new rifa's ID and name
+    response_object = {
+        "email": user_data.email,
+      
+    }
 
-@router.post("/register")
-def register_user(user: User, session: Session = Depends(get_session)):
-    existing_user = session.query(User).filter_by(email=user.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    return response_object
 
-    encrypted_password =get_hashed_password(user.password)
-
-    new_user = User(username=user.username, email=user.email, password=encrypted_password )
-
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-
-    return {"message":"user created successfully"}

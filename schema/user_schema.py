@@ -1,4 +1,4 @@
-from pydantic import BaseModel, conint , constr
+from pydantic import BaseModel, conint , constr,EmailStr
 from typing import Optional
 
 
@@ -20,12 +20,18 @@ class rifaschema(BaseModel):
     description:constr(max_length=300, strict=True)
     imagen:constr(max_length=300)
 
-class User(BaseModel):
-    username: str
+class User_data (BaseModel):
+    email : EmailStr
+    first_name : constr(max_length=30, strict=True)
+    last_name : constr(max_length=30, strict=True)
+    phone : str
+    address : constr(max_length=30, strict=True)
+    gender : constr(max_length=30, strict=True)
+    password : str
 
-class UserInDB(User):
-    hashed_password: str
+#class UserInDB(User):
+  #  hashed_password: str
 
-class UserInLogin(User):
-    password: str
+#class UserInLogin(User):
+ #   password: str
 

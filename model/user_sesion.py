@@ -5,6 +5,7 @@ import logging
 from config.database_schema import database_dsn
 
 
+
 #Create logger instance
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,9 @@ class userConnection():
             except psycopg.Error as e:
                 logger.error(f"Error retrieving user for login: {e}")
                 raise e
+
+    
+
 
     def __def__(self):
         self.conn.close()

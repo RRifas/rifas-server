@@ -1,11 +1,10 @@
 from model.users_connection import userConnection
 from schema.user_schema import User_data
-from fastapi import APIRouter , HTTPException
+from fastapi import APIRouter , HTTPException,Depends
 from model.user_sesion import userConnection
-from fastapi import FastAPI, HTTPException
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 import psycopg
-
+from model.tokem import create_access_token, verify_token
 
 conn = userConnection()
 
@@ -45,10 +44,10 @@ def login_route(email: str, password: str):
         # Si las credenciales son incorrectas, devolvemos un error 401 Unauthorized
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
-    # Si el usuario es autenticado correctamente, podemos responder con los datos relevantes
-    response_object = {
-        "email": user,
-        # Otros datos que quieras devolver en la respuesta
-    }
     
-    return response_object
+    access_token = create_access_token(user)
+    return {"access_token": access_token}
+
+@router.get("/profile/")
+def get_profile(current_user: dict = Depends(verify_token)):
+    return current_user  

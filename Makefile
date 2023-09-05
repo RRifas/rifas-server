@@ -3,14 +3,17 @@
 # ===========
 
 start: ## Run app
-	uvicorn apirifas:app --reload --port 8000
+	uvicorn main:app --reload --port 8000
 
 start-prod: ## Run app
-	uvicorn apirifas:app --port ${PORT}
+	uvicorn main:app --port ${PORT}
 
 # ==================
 # = Pip management =
 # ==================
+
+requirements: #update requirements file
+	pip freeze > requirements.txt
 
 pip-install: ## Install pip requirements
 	pip install -r ./requirements.txt

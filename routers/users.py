@@ -5,6 +5,9 @@ from model.user_session import userConnection
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 import psycopg
 from model.token import create_access_token, verify_token
+from fastapi.responses import JSONResponse
+
+
 
 conn = userConnection()
 
@@ -13,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.post("/register", status_code=HTTP_201_CREATED)
+@router.post("/register/", status_code=HTTP_201_CREATED)
 def register(user_data: User_data):
     if not user_data:
         raise HTTPException(status_code=400, detail="Invalid request data")
@@ -36,7 +39,7 @@ def register(user_data: User_data):
     return response_object
 
 
-@router.post("/login", status_code=HTTP_200_OK)
+@router.post("/login/", status_code=HTTP_200_OK)
 def login_route(login_credentials: User_login):
     # Check if request data is valid
     if not login_credentials:
@@ -53,9 +56,11 @@ def login_route(login_credentials: User_login):
         raise HTTPException(status_code=401, detail="Incorrect email or password")
 
     access_token = create_access_token(user)
-    return {"access_token": access_token}
+    
+    return JSONResponse(content={"access_token": access_token})
+   
 
 
-@router.get("/profile")
+@router.get("/profile/")
 def get_profile(current_user: dict = Depends(verify_token)):
     return current_user
